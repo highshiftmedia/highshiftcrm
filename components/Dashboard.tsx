@@ -1,11 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
 } from 'recharts';
 import { 
   Users, Briefcase, TrendingUp, DollarSign,
-  ArrowUpRight, Rocket, GitGraph, Target, MessageSquare
+  ArrowUpRight, Rocket, GitGraph, Target, MessageSquare, X, Activity, Clock
 } from 'lucide-react';
 import { Client, Project, MarketingCampaign, Expense, Opportunity } from '../types';
 
@@ -38,6 +38,7 @@ const StatCard = ({ title, value, label, icon: Icon, color, trend }: any) => (
 );
 
 const Dashboard: React.FC<DashboardProps> = ({ clients, projects, campaigns, expenses, opportunities, setCurrentView }) => {
+  const [isLogOpen, setIsLogOpen] = useState(false);
   const totalRevenueValue = opportunities.filter(o => o.stage === 'Closed').reduce((acc, o) => acc + o.value, 0);
   const pipelineValue = opportunities.filter(o => o.stage !== 'Closed').reduce((acc, o) => acc + o.value, 0);
   
@@ -149,8 +150,51 @@ const Dashboard: React.FC<DashboardProps> = ({ clients, projects, campaigns, exp
                 </div>
               ))}
             </div>
-            <button className="w-full mt-8 py-3 bg-white/10 rounded-2xl font-bold text-sm hover:bg-white/20 transition">View Audit Log</button>
+            <button 
+              onClick={() => setIsLogOpen(true)}
+              className="w-full mt-8 py-3 bg-white/10 rounded-2xl font-bold text-sm hover:bg-white/20 transition"
+            >
+              View Audit Log
+            </button>
           </div>
+        </div>
+      )}
+
+      {/* Audit Log Sliding Panel */}
+      {isLogOpen && (
+        <div className="fixed inset-0 z-[120] flex justify-end">
+           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsLogOpen(false)}></div>
+           <div className="relative w-full max-w-md bg-white h-full shadow-2xl animate-in slide-in-from-right duration-300 flex flex-col">
+              <div className="p-6 border-b flex justify-between items-center bg-slate-50">
+                 <div className="flex items-center space-x-3">
+                    <Activity className="text-blue-600" />
+                    <h3 className="font-black text-slate-900 uppercase tracking-widest text-sm">System Audit Log</h3>
+                 </div>
+                 <button onClick={() => setIsLogOpen(false)} className="p-2 hover:bg-slate-200 rounded-full transition"><X /></button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                 {opportunities.length === 0 ? (
+                    <div className="text-center py-20 text-slate-400 font-medium italic">No recent system logs.</div>
+                 ) : (
+                    opportunities.map(opp => (
+                       <div key={opp.id} className="flex items-start space-x-4 group">
+                          <div className="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center shrink-0 mt-1">
+                             <Clock size={16} />
+                          </div>
+                          <div>
+                             <p className="text-sm text-slate-900">
+                                <span className="font-bold">Lead Status Update:</span> {opp.name} was moved to stage <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold text-[10px]">{opp.stage}</span>
+                             </p>
+                             <p className="text-[10px] text-slate-400 font-bold uppercase mt-1">Today at 10:45 AM • System generated</p>
+                          </div>
+                       </div>
+                    ))
+                 )}
+              </div>
+              <div className="p-6 border-t bg-slate-50">
+                 <button className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-black transition shadow-lg">Export Log to CSV</button>
+              </div>
+           </div>
         </div>
       )}
     </div>
